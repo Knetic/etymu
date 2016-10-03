@@ -1,9 +1,9 @@
 package main
 
 import (
+	. "etymu"
 	"fmt"
 	"os"
-	. "etymu"
 )
 
 func main() {
@@ -13,17 +13,17 @@ func main() {
 	var err error
 
 	settings, err = parseRunSettings()
-	if(err != nil) {
+	if err != nil {
 		fatal(err, 1)
 	}
 
 	lex, err = LexFileFromPath(settings.InputPath)
-	if(err != nil) {
+	if err != nil {
 		fatal(err, 2)
 	}
 
 	err = Generate(settings.Language, settings.OutputPath, lex)
-	if(err != nil) {
+	if err != nil {
 		fatal(err, 3)
 	}
 }

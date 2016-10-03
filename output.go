@@ -1,11 +1,11 @@
 package main
 
 import (
+	"errors"
+	. "etymu"
+	"fmt"
 	"os"
 	"path/filepath"
-	. "etymu"
-	"errors"
-	"fmt"
 )
 
 /*
@@ -29,10 +29,10 @@ func Generate(language string, path string, lex *LexFile) error {
 
 	generated := make(chan []byte, 8)
 
-	go func(){writeErr = writeOutputPath(path, generated)}()
+	go func() { writeErr = writeOutputPath(path, generated) }()
 	generator(lex, generated)
 
-	if(writeErr != nil) {
+	if writeErr != nil {
 		return writeErr
 	}
 	return nil
@@ -49,12 +49,12 @@ func writeOutputPath(path string, in <-chan []byte) error {
 	var err error
 
 	path, err = filepath.Abs(path)
-	if(err != nil) {
+	if err != nil {
 		return err
 	}
 
 	file, err = os.Open(path)
-	if(err != nil) {
+	if err != nil {
 		return err
 	}
 	defer file.Close()

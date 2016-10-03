@@ -20,7 +20,7 @@ func NewDefinition(patterns ...string) (*Definition, error) {
 	for _, pattern := range patterns {
 
 		regex, err = regexp.Compile(pattern)
-		if(err != nil) {
+		if err != nil {
 			return nil, err
 		}
 

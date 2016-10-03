@@ -1,16 +1,15 @@
 package main
 
 import (
-	"flag"
 	"errors"
+	"flag"
 )
 
 type RunSettings struct {
-
-	Package string
-	Language string
+	Package    string
+	Language   string
 	OutputPath string
-	InputPath string
+	InputPath  string
 }
 
 func parseRunSettings() (RunSettings, error) {
@@ -23,7 +22,7 @@ func parseRunSettings() (RunSettings, error) {
 	flag.Parse()
 
 	ret.InputPath = flag.Arg(0)
-	if(ret.InputPath == "") {
+	if ret.InputPath == "" {
 		return ret, errors.New("First positional parameter must be an input file")
 	}
 

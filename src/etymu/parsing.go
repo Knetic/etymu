@@ -1,9 +1,9 @@
 package etymu
 
 import (
-	"strings"
 	"bufio"
 	"io"
+	"strings"
 )
 
 /*
@@ -12,7 +12,7 @@ import (
 func addDefinitionLine(lex *LexFile, line string) error {
 
 	line = strings.TrimSpace(line)
-	if(line == "" || line[0:2] == "//") {
+	if line == "" || line[0:2] == "//" {
 		// comment or whitespace
 		return nil
 	}
@@ -38,16 +38,16 @@ func linesUntilSeparator(reader io.Reader, separator string, out chan string) er
 	var ok bool
 
 	defer close(out)
-	
+
 	bufferedReader = bufio.NewReader(reader)
 
 	for {
 
 		line, ok, err = bufferedReader.ReadLine()
-		if(!ok) {
+		if !ok {
 			break
 		}
-		if(err != nil) {
+		if err != nil {
 			return err
 		}
 

@@ -1,15 +1,14 @@
 package etymu
 
 import (
-	"path/filepath"
-	"os"
 	"io"
+	"os"
+	"path/filepath"
 )
 
 type LexFile struct {
-
 	Definitions []Definition
-	Rules []Rule
+	Rules       []Rule
 }
 
 func LexFileFromPath(path string) (*LexFile, error) {
@@ -18,12 +17,12 @@ func LexFileFromPath(path string) (*LexFile, error) {
 	var err error
 
 	path, err = filepath.Abs(path)
-	if(err != nil) {
+	if err != nil {
 		return nil, err
 	}
 
 	file, err = os.Open(path)
-	if(err != nil) {
+	if err != nil {
 		return nil, err
 	}
 	defer file.Close()
@@ -41,26 +40,26 @@ func LexFileFromStream(reader io.Reader) (*LexFile, error) {
 	// see parsing.go for the bulk of the logic for this.
 	// read definitions
 	lines = make(chan string)
-	go func(){readErr = linesUntilSeparator(reader, "%%", lines)}()
+	go func() { readErr = linesUntilSeparator(reader, "%%", lines) }()
 	for line := range lines {
 
 		err = addDefinitionLine(ret, line)
-		if(err != nil) {
+		if err != nil {
 			return nil, err
 		}
 	}
 
-	if(readErr != nil) {
+	if readErr != nil {
 		return nil, readErr
 	}
 
 	// read rules
 	lines = make(chan string)
-	go func(){readErr = linesUntilSeparator(reader, "%%", lines)}()
+	go func() { readErr = linesUntilSeparator(reader, "%%", lines) }()
 	for line := range lines {
 
 		err = addRuleLine(ret, line)
-		if(err != nil) {
+		if err != nil {
 			return nil, err
 		}
 	}

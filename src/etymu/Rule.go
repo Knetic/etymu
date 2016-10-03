@@ -1,9 +1,8 @@
 package etymu
 
 type Rule struct {
-
 	Definition Definition
-	Action string
+	Action     string
 }
 
 func NewRule(definition Definition, action string) *Rule {
