@@ -1,15 +1,18 @@
 package etymu
 
+import (
+	"regexp"
+)
+
 type Rule struct {
-	Definition Definition
+	Patterns 	[]*regexp.Regexp
 	Action     string
 }
 
-func NewRule(definition Definition, action string) *Rule {
+func NewRule(action string, patterns ...*regexp.Regexp) *Rule {
 
 	ret := new(Rule)
-	ret.Definition = definition
+	ret.Patterns = patterns
 	ret.Action = action
-
 	return ret
 }

@@ -4,10 +4,11 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
 )
 
 type LexFile struct {
-	Definitions []Definition
+	Definitions map[string]*regexp.Regexp
 	Rules       []Rule
 }
 
@@ -36,6 +37,7 @@ func LexFileFromStream(reader io.Reader) (*LexFile, error) {
 	var readErr, err error
 
 	ret := new(LexFile)
+	ret.Definitions = make(map[string]*regexp.Regexp)
 
 	// see parsing.go for the bulk of the logic for this.
 	// read definitions
@@ -65,4 +67,15 @@ func LexFileFromStream(reader io.Reader) (*LexFile, error) {
 	}
 
 	return ret, nil
+}
+
+func (this *LexFile) AddDefinition(name string, pattern string) error {
+
+	regex, err := regexp.Compile(pattern)
+	if err != nil {
+		return err
+	}
+
+	this.Definitions[name] = regex
+	return err
 }

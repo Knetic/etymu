@@ -1,5 +1,5 @@
 digit 	[0-9]+
-whitepace [\w+]
+whitespace [\w]
 
 %%
 
