@@ -22,11 +22,14 @@ func main() {
 		fatal(err, 2)
 	}
 
-	fmt.Printf("Parsed lex: %v\n", lex)
+	err = Generate(settings.Language, settings.OutputPath, lex)
+	if(err != nil) {
+		fatal(err, 3)
+	}
 }
 
 func fatal(fault error, code int) {
 
-	fmt.Fprintf(os.Stderr, fault.Error())
+	fmt.Fprintf(os.Stderr, "%v\n", fault.Error())
 	os.Exit(code)
 }

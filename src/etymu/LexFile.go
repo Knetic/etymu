@@ -26,6 +26,7 @@ func LexFileFromPath(path string) (*LexFile, error) {
 	if(err != nil) {
 		return nil, err
 	}
+	defer file.Close()
 
 	return LexFileFromStream(file)
 }
