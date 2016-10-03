@@ -23,7 +23,7 @@ func Generate(language Language, path string, lex *LexFile) error {
 	case LANG_GO:
 		generator = GenerateGo
 	default:
-		errorMsg := fmt.Sprintf("Program incomplete, implementation not found for language '%v' ('%s')\n", language, LanguageExtensionMap[language])
+		errorMsg := fmt.Sprintf("Program incomplete, implementation not found for language '%v' ('%s'). This is a problem for the developer.\n", language, LanguageExtensionMap[language])
 		return errors.New(errorMsg)
 	}
 
