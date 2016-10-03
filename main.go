@@ -15,7 +15,6 @@ func main() {
 		fatal(err, 1)
 	}
 
-	fmt.Printf("Hello, etymu\n")
 	fmt.Printf("Settings: %v\n", settings)
 }
 
