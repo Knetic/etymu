@@ -14,16 +14,16 @@ import (
 */
 type Codegen func(file *LexFile, out chan []byte)
 
-func Generate(language string, path string, lex *LexFile) error {
+func Generate(language Language, path string, lex *LexFile) error {
 
 	var generator Codegen
 	var writeErr error
 
 	switch language {
-	case "go":
+	case LANG_GO:
 		generator = GenerateGo
 	default:
-		errorMsg := fmt.Sprintf("Unable to generate code for unknown language '%s'\n", language)
+		errorMsg := fmt.Sprintf("Program incomplete, implementation not found for language '%v' ('%s')\n", language, LanguageExtensionMap[language])
 		return errors.New(errorMsg)
 	}
 
@@ -36,6 +36,10 @@ func Generate(language string, path string, lex *LexFile) error {
 		return writeErr
 	}
 	return nil
+}
+
+func findOutputName(inputPath string) string {
+	return filepath.Base(inputPath)
 }
 
 /*
