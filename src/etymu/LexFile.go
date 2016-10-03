@@ -32,5 +32,37 @@ func LexFileFromPath(path string) (*LexFile, error) {
 
 func LexFileFromStream(reader io.Reader) (*LexFile, error) {
 
-	return nil, nil
+	var lines chan string
+	var readErr, err error
+
+	ret := new(LexFile)
+
+	// see parsing.go for the bulk of the logic for this.
+	// read definitions
+	lines = make(chan string)
+	go func(){readErr = linesUntilSeparator(reader, "%%", lines)}()
+	for line := range lines {
+
+		err = addDefinitionLine(ret, line)
+		if(err != nil) {
+			return nil, err
+		}
+	}
+
+	if(readErr != nil) {
+		return nil, readErr
+	}
+
+	// read rules
+	lines = make(chan string)
+	go func(){readErr = linesUntilSeparator(reader, "%%", lines)}()
+	for line := range lines {
+
+		err = addRuleLine(ret, line)
+		if(err != nil) {
+			return nil, err
+		}
+	}
+
+	return ret, nil
 }
