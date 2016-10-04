@@ -4,11 +4,14 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"fmt"
+	"errors"
 	"regexp"
+	"bufio"
 )
 
 type LexFile struct {
-	Definitions map[string]*regexp.Regexp
+	Definitions map[string]string
 	Rules       []Rule
 }
 
@@ -34,15 +37,18 @@ func LexFileFromPath(path string) (*LexFile, error) {
 func LexFileFromStream(reader io.Reader) (*LexFile, error) {
 
 	var lines chan string
+	var bufferedReader *bufio.Reader
 	var readErr, err error
 
 	ret := new(LexFile)
-	ret.Definitions = make(map[string]*regexp.Regexp)
+	ret.Definitions = make(map[string]string)
+
+	bufferedReader = bufio.NewReader(reader)
 
 	// see parsing.go for the bulk of the logic for this.
 	// read definitions
 	lines = make(chan string)
-	go func() { readErr = linesUntilSeparator(reader, "%%", lines) }()
+	go func() { readErr = linesUntilSeparator(bufferedReader, "%%", lines) }()
 	for line := range lines {
 
 		err = addDefinitionLine(ret, line)
@@ -57,7 +63,7 @@ func LexFileFromStream(reader io.Reader) (*LexFile, error) {
 
 	// read rules
 	lines = make(chan string)
-	go func() { readErr = linesUntilSeparator(reader, "%%", lines) }()
+	go func() { readErr = linesUntilSeparator(bufferedReader, "%%", lines) }()
 	for line := range lines {
 
 		err = addRuleLine(ret, line)
@@ -70,12 +76,59 @@ func LexFileFromStream(reader io.Reader) (*LexFile, error) {
 }
 
 func (this *LexFile) AddDefinition(name string, pattern string) error {
+	this.Definitions[name] = pattern
+	return nil
+}
 
-	regex, err := regexp.Compile(pattern)
-	if err != nil {
-		return err
+func (this *LexFile) AddRule(action string, patterns ...string) error {
+
+	var expressions []string
+	var err error
+
+	for _, pattern := range patterns {
+
+		_, err = regexp.Compile(pattern)
+		if err != nil {
+			return err
+		}
+
+		expressions = append(expressions, pattern)
 	}
 
-	this.Definitions[name] = regex
-	return err
+	rule := Rule {
+		Action: action,
+		Patterns: expressions,
+	}
+
+	this.Rules = append(this.Rules, rule)
+	return nil
+}
+
+/*
+	Takes all the given patterns and replaces any definitions with the actual pattern.
+*/
+func (this *LexFile) resolvePatterns(patterns ...string) ([]string, error) {
+
+	var resolveName string
+
+	ret := make([]string, len(patterns))
+
+	for _, pattern := range patterns {
+
+		if(pattern[0] != '{') {
+			ret = append(ret, pattern)
+			continue
+		}
+
+		resolveName = pattern[1:len(pattern)-1]
+		resolvedPattern, found := this.Definitions[resolveName]
+		if(!found) {
+			errorMsg := fmt.Sprintf("Unable to find a definition for '%s'", resolveName)
+			return ret, errors.New(errorMsg)
+		}
+
+		ret = append(ret, resolvedPattern)
+	}
+
+	return ret, nil
 }

@@ -20,6 +20,9 @@ func addDefinitionLine(lex *LexFile, line string) error {
 	if(err != nil) {
 		return err
 	}
+	if(name != "" && pattern == "") {
+		return errors.New("Unable to parse definition, did not contain a whitespace-separated name and pattern.")
+	}
 	if(name == "" && pattern == "") {
 		return nil
 	}
@@ -33,6 +36,7 @@ func addDefinitionLine(lex *LexFile, line string) error {
 */
 func addRuleLine(lex *LexFile, line string) error {
 
+	var patterns []string
 	var left, right string
 	var err error
 
@@ -45,9 +49,12 @@ func addRuleLine(lex *LexFile, line string) error {
 	}
 
 	// get a set of patterns from the left side
+	patterns, err = lex.resolvePatterns(strings.Split(left, "|")...)
+	if(err != nil) {
+		return err
+	}
 
-	// get the action (in braces) from the right side
-
+	lex.AddRule(right, patterns...)
 	return nil
 }
 
@@ -57,7 +64,7 @@ func getWhitespaceDelimitedString(line string) (string, string, error) {
 	var lineLen int
 
 	line = strings.TrimSpace(line)
-	if line == "" || line[0:2] == "//" {
+	if line == "" || strings.HasPrefix(line, "//") {
 		// comment or whitespace
 		return "", "", nil
 	}
@@ -70,14 +77,16 @@ func getWhitespaceDelimitedString(line string) (string, string, error) {
 		}
 	}
 
-	for rightIdx = leftIdx+1; rightIdx < lineLen; rightIdx++ {
+	if(leftIdx < lineLen-1) {
+		rightIdx = leftIdx+1
+	} else {
+		rightIdx = leftIdx
+	}
+
+	for ; rightIdx < lineLen; rightIdx++ {
 		if(!unicode.IsSpace(rune(line[rightIdx]))) {
 			break
 		}
-	}
-
-	if(leftIdx >= lineLen || rightIdx >= lineLen) {
-		return "", "", errors.New("Unable to parse definition, did not contain a whitespace-separated name and pattern.")
 	}
 
 	return line[0:leftIdx], line[rightIdx:], nil
@@ -87,19 +96,16 @@ func getWhitespaceDelimitedString(line string) (string, string, error) {
 	Reads lines from [reader], sending them one-by-one through [out], until the given [separator] is found.
 	The given reader is not closed by this method, but the given channel is.
 */
-func linesUntilSeparator(reader io.Reader, separator string, out chan string) error {
+func linesUntilSeparator(reader *bufio.Reader, separator string, out chan string) error {
 
 	var line string
-	var bufferedReader *bufio.Reader
 	var err error
 
 	defer close(out)
 
-	bufferedReader = bufio.NewReader(reader)
-
 	for {
 
-		line, err = bufferedReader.ReadString('\n')
+		line, err = reader.ReadString('\n')
 		if err != nil {
 			if(err == io.EOF) {
 				break
