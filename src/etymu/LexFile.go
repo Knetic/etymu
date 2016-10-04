@@ -104,6 +104,29 @@ func (this *LexFile) AddRule(action string, patterns ...string) error {
 	return nil
 }
 
+func (this *LexFile) GetAllActionNames() []string {
+
+	var ret []string
+	var found bool
+
+	for _, rule := range this.Rules {
+
+		found = false
+		for _, extant := range ret {
+			if rule.Action == extant {
+				found = true
+				break
+			}
+		}
+
+		if found {
+			continue
+		}
+		ret = append(ret, rule.Action)
+	}
+	return ret
+}
+
 /*
 	Takes all the given patterns and replaces any definitions with the actual pattern.
 */

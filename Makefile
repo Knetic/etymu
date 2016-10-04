@@ -7,7 +7,7 @@ export GOBIN=$(CURDIR)/.temp/
 init: clean
 	go get ./...
 
-build: init
+build: init fmt
 	go build -o ./.output/etymu .
 
 test:
