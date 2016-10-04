@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"math"
-	"strings"
 )
 
 /*
@@ -91,10 +90,9 @@ func (this *BufferedFormatString) matchIndentation(source string, tabs int) stri
 
 	var replacement bytes.Buffer
 
-	replacement.WriteRune('\n')
 	for i := 0; i < tabs; i++ {
 		replacement.WriteString(this.indentSeparator)
 	}
 
-	return strings.Replace(source, "\n", replacement.String(), -1)
+	return replacement.String() + source
 }
