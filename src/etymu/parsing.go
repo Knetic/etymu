@@ -61,12 +61,14 @@ func addRuleLine(lex *LexFile, line string) error {
 			errorMsg := fmt.Sprintf("No opening brace to action ('%s')", right)
 			return errors.New(errorMsg)
 		}
-		
+
 		closeIdx := strings.Index(right, "}")
 		if(closeIdx <= -1) {
 			errorMsg := fmt.Sprintf("No closing brace to action ('%s')", right)
 			return errors.New(errorMsg)
 		}
+
+		right = right[1:closeIdx]
 	}
 
 	lex.AddRule(right, patterns...)

@@ -3,11 +3,11 @@ whitespace [\w]
 
 %%
 
-"+"	{ return PLUS }
-"-"	{ return MINUS }
-"/" { return DIVIDE }
-"*" { return MULTIPLY}
-{digit} { return NUMERIC }
+"+"	{ PLUS }
+"-"	{ MINUS }
+"/" { DIVIDE }
+"*" { MULTIPLY}
+{digit} { NUMERIC }
 
 // skip whitespace, but treat as separator
 {whitespace}
