@@ -1,8 +1,8 @@
 // any unicode alphanumeric
-string [\\p{L}\\p{Nd}_]+
-path [\\p{L}\\p{Nd}_/\\.]+
+//string [\\p{L}\\p{Nd}_/\\.]+
 
-whitespace [\w]+
+string [a-zA-z0-9_/\\.]+
+whitespace [\\s]+
 
 %%
 
@@ -42,5 +42,5 @@ whitespace [\w]+
 "\n"		{ESCAPE_NEWLINE}
 
 {string}	{STRING}
-{path}		{PATH}
+{whitespace}
 %%

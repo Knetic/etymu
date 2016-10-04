@@ -8,6 +8,7 @@ func GenerateGo(file *LexFile, module string, out chan []byte) {
 
 	generateGoImports(file, buffer)
 	generateGoTypes(file, buffer)
+	generateGoMatcher(buffer)
 	generateLexerFunctions(file, buffer)
 	generateGoRules(file, buffer)
 	generateGoLexer(file, buffer)
@@ -91,55 +92,97 @@ func generateGoRules(file *LexFile, buffer *BufferedFormatString) {
 	buffer.Printfln("}\n")
 }
 
+// generates the actual lexing function which takes the input string and makes tokens out of it
 func generateGoLexer(file *LexFile, buffer *BufferedFormatString) {
 
 	buffer.Printfln("func Lex(input string) ([]Token, error) {")
 	buffer.AddIndentation(1)
 	buffer.Printfln("var ret []Token")
 	buffer.Printfln("var matchedRule lexerRule")
-	buffer.Printfln("var t string")
-	buffer.Printfln("var ruleMatches uint16")
+	buffer.Printfln("var t, p string")
+	buffer.Printfln("var ruleMatches, priorRuleMatches uint16")
 
-	// TODO: iterate character by character, adding to a buffer, until we detect that only one rule matches the given buffer
+	// iterate character by character, adding to a buffer, until we detect that only one rule matches the given buffer
 	// if more than one rule always applies, return an ambiguity error
-	// double TODO: ambiguity errors suck, those ideally should be detectable during codegen-time
+	// TODO: ambiguity errors suck, those ideally should be detectable during codegen-time
 
 	buffer.Printfln("for _, char := range input {")
 	buffer.AddIndentation(1)
+	buffer.Printfln("p = t")
 	buffer.Printfln("t += string(char)")
+	buffer.Printfln("priorRuleMatches = ruleMatches")
 	buffer.Printfln("ruleMatches = 0")
 
 	// check every rule to see if this matches exactly one
-	buffer.Printfln("for _, rule := range lexerRules {")
+	buffer.Printfln("matchedRule, ruleMatches = matchRules(t)")
+
+	// if we have ambiguous (or no) matches, keep adding to the string until we have only one match.
+	buffer.Printfln("if ruleMatches != 1 && priorRuleMatches == 1 {")
 	buffer.AddIndentation(1)
-	buffer.Printfln("if rule.applies(t) {")
-	buffer.AddIndentation(1)
-	buffer.Printfln("matchedRule = rule")
-	buffer.Printfln("ruleMatches++")
-	buffer.Printfln("if ruleMatches >= 2 {break}")
+	buffer.Printfln("token := Token{Kind: matchedRule.kind, Value: p}")
+	buffer.Printfln("ret = append(ret, token)")
+	buffer.Printfln("t = t[len(t)-1:]")
+	buffer.Printfln("matchedRule, ruleMatches = matchRules(t)")
+	buffer.Printfln("continue")
 	buffer.AddIndentation(-1)
 	buffer.Printfln("}\n")
-
-	buffer.AddIndentation(-1) // for
-	buffer.Printfln("}\n")
-
-	// if more than one rule matches, keep adding to the string until we have only one.
-	buffer.Printfln("if ruleMatches > 1 {continue}")
-	buffer.Printfln("token := Token{Kind: matchedRule.kind, Value: t}")
-	buffer.Printfln("ret = append(ret, token)")
-	buffer.Printfln("t = \"\"")
 
 	buffer.AddIndentation(-1)
 	buffer.Printfln("}\n")
 
 	buffer.Printfln("if len(t) > 0 {")
 	buffer.AddIndentation(1)
+
+	// hanging token that's valid
+	buffer.Printfln("if ruleMatches == 1 {")
+	buffer.AddIndentation(1)
+	buffer.Printfln("token := Token{Kind: matchedRule.kind, Value: t}")
+	buffer.Printfln("ret = append(ret, token)")
+	buffer.AddIndentation(-1)
+	buffer.Printfln("}\n")
+
+	// no matched rules at all :[
+	buffer.Printfln("if ruleMatches == 0 {")
+	buffer.AddIndentation(1)
+	buffer.Printfln("errorMsg := fmt.Sprintf(\"No matched rules for token: '%%s'\", t)")
+	buffer.Printfln("return ret, errors.New(errorMsg)")
+	buffer.AddIndentation(-1)
+	buffer.Printfln("}\n")
+
 	buffer.Printfln("errorMsg := fmt.Sprintf(\"Hanging token which matched more than one lexer rule: '%%s'\", t)")
 	buffer.Printfln("return ret, errors.New(errorMsg)")
 	buffer.AddIndentation(-1)
 	buffer.Printfln("}\n")
 
 	buffer.Printfln("return ret, nil")
+	buffer.AddIndentation(-1)
+	buffer.Printfln("}")
+}
+
+func generateGoMatcher(buffer *BufferedFormatString) {
+
+	buffer.Printfln("func matchRules(input string) (lexerRule, uint16) {")
+	buffer.AddIndentation(1)
+
+	buffer.Printfln("var matchedRule lexerRule")
+	buffer.Printfln("var count uint16")
+	buffer.Printfln("for _, rule := range lexerRules {")
+	buffer.AddIndentation(1)
+
+	buffer.Printfln("if rule.applies(input) {")
+	buffer.AddIndentation(1)
+
+	buffer.Printfln("matchedRule = rule")
+	buffer.Printfln("count++")
+	buffer.Printfln("if count >= 2 {break}")
+	buffer.AddIndentation(-1)
+	buffer.Printfln("}")
+
+	buffer.AddIndentation(-1)
+	buffer.Printfln("}")
+
+	buffer.Printfln("return matchedRule, count")
+
 	buffer.AddIndentation(-1)
 	buffer.Printfln("}")
 }
