@@ -2,9 +2,9 @@ package etymu
 
 import (
 	"bufio"
+	"errors"
 	"io"
 	"strings"
-	"errors"
 	"unicode"
 )
 
@@ -17,13 +17,13 @@ func addDefinitionLine(lex *LexFile, line string) error {
 	var err error
 
 	name, pattern, err = getWhitespaceDelimitedString(line)
-	if(err != nil) {
+	if err != nil {
 		return err
 	}
-	if(name != "" && pattern == "") {
+	if name != "" && pattern == "" {
 		return errors.New("Unable to parse definition, did not contain a whitespace-separated name and pattern.")
 	}
-	if(name == "" && pattern == "") {
+	if name == "" && pattern == "" {
 		return nil
 	}
 
@@ -41,16 +41,16 @@ func addRuleLine(lex *LexFile, line string) error {
 	var err error
 
 	left, right, err = getWhitespaceDelimitedString(line)
-	if(err != nil) {
+	if err != nil {
 		return err
 	}
-	if(left == "" && right == "") {
+	if left == "" && right == "" {
 		return nil
 	}
 
 	// get a set of patterns from the left side
 	patterns, err = lex.resolvePatterns(strings.Split(left, "|")...)
-	if(err != nil) {
+	if err != nil {
 		return err
 	}
 
@@ -72,19 +72,19 @@ func getWhitespaceDelimitedString(line string) (string, string, error) {
 	lineLen = len(line)
 
 	for leftIdx = 0; leftIdx < lineLen; leftIdx++ {
-		if(unicode.IsSpace(rune(line[leftIdx]))) {
+		if unicode.IsSpace(rune(line[leftIdx])) {
 			break
 		}
 	}
 
-	if(leftIdx < lineLen-1) {
-		rightIdx = leftIdx+1
+	if leftIdx < lineLen-1 {
+		rightIdx = leftIdx + 1
 	} else {
 		rightIdx = leftIdx
 	}
 
 	for ; rightIdx < lineLen; rightIdx++ {
-		if(!unicode.IsSpace(rune(line[rightIdx]))) {
+		if !unicode.IsSpace(rune(line[rightIdx])) {
 			break
 		}
 	}
@@ -107,13 +107,13 @@ func linesUntilSeparator(reader *bufio.Reader, separator string, out chan string
 
 		line, err = reader.ReadString('\n')
 		if err != nil {
-			if(err == io.EOF) {
+			if err == io.EOF {
 				break
 			}
 			return err
 		}
 
-		if(strings.HasPrefix(line, separator)) {
+		if strings.HasPrefix(line, separator) {
 			break
 		}
 

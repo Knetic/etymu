@@ -1,6 +1,6 @@
 package etymu
 
 type Rule struct {
-	Patterns 	[]string
-	Action     string
+	Patterns []string
+	Action   string
 }

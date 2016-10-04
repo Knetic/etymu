@@ -1,13 +1,13 @@
 package etymu
 
 import (
+	"bufio"
+	"errors"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
-	"fmt"
-	"errors"
 	"regexp"
-	"bufio"
 )
 
 type LexFile struct {
@@ -95,8 +95,8 @@ func (this *LexFile) AddRule(action string, patterns ...string) error {
 		expressions = append(expressions, pattern)
 	}
 
-	rule := Rule {
-		Action: action,
+	rule := Rule{
+		Action:   action,
 		Patterns: expressions,
 	}
 
@@ -115,14 +115,14 @@ func (this *LexFile) resolvePatterns(patterns ...string) ([]string, error) {
 
 	for _, pattern := range patterns {
 
-		if(pattern[0] != '{') {
+		if pattern[0] != '{' {
 			ret = append(ret, pattern)
 			continue
 		}
 
-		resolveName = pattern[1:len(pattern)-1]
+		resolveName = pattern[1 : len(pattern)-1]
 		resolvedPattern, found := this.Definitions[resolveName]
-		if(!found) {
+		if !found {
 			errorMsg := fmt.Sprintf("Unable to find a definition for '%s'", resolveName)
 			return ret, errors.New(errorMsg)
 		}
