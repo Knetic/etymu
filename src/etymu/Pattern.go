@@ -21,6 +21,7 @@ func parseRulePattern(pattern string) (Pattern, error) {
 		}, nil
 	}
 
+	pattern = pattern + "$"
 	_, err = regexp.Compile(pattern)
 	if err != nil {
 		return Pattern{}, err

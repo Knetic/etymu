@@ -14,17 +14,23 @@ import (
 */
 func addDefinitionLine(lex *LexFile, line string) error {
 
-	var name, pattern string
+	var name, right string
+	var pattern Pattern
 	var err error
 
-	name, pattern, err = getWhitespaceDelimitedString(line)
+	name, right, err = getWhitespaceDelimitedString(line)
 	if err != nil {
 		return err
 	}
-	if name != "" && pattern == "" {
+	if name != "" && right == "" {
 		return errors.New("Unable to parse definition, did not contain a whitespace-separated name and pattern.")
 	}
-	if name == "" && pattern == "" {
+	if name == "" && right == "" {
+		return nil
+	}
+
+	pattern, err = parseRulePattern(right)
+	if err != nil {
 		return nil
 	}
 
@@ -38,6 +44,7 @@ func addDefinitionLine(lex *LexFile, line string) error {
 func addRuleLine(lex *LexFile, line string) error {
 
 	var patterns []string
+	var resolvedPatterns []Pattern
 	var left, right string
 	var err error
 
@@ -55,7 +62,7 @@ func addRuleLine(lex *LexFile, line string) error {
 		return err
 	}
 
-	patterns, err = lex.resolvePatterns(patterns...)
+	resolvedPatterns, err = lex.resolvePatterns(patterns...)
 	if err != nil {
 		return err
 	}
@@ -76,7 +83,7 @@ func addRuleLine(lex *LexFile, line string) error {
 		right = right[1:closeIdx]
 	}
 
-	lex.AddRule(right, patterns...)
+	lex.AddRule(right, resolvedPatterns...)
 	return nil
 }
 

@@ -9,7 +9,7 @@ import (
 )
 
 type RunSettings struct {
-	Package    string
+	Module     string
 	Language   Language
 	OutputPath string
 	InputPath  string
@@ -22,7 +22,7 @@ func parseRunSettings() (RunSettings, error) {
 	var ok bool
 
 	flag.StringVar(&language, "l", "go", "Language to generate code for")
-	flag.StringVar(&ret.Package, "p", "lexer", "Package (or module) name for generated lexer")
+	flag.StringVar(&ret.Module, "m", "lexer", "Package (or module) name for generated lexer")
 	flag.StringVar(&ret.OutputPath, "o", "", "Output path for generated lexer")
 	flag.Parse()
 

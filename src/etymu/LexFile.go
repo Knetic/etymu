@@ -11,7 +11,7 @@ import (
 )
 
 type LexFile struct {
-	Definitions map[string]string
+	Definitions map[string]Pattern
 	Rules       []Rule
 }
 
@@ -41,7 +41,7 @@ func LexFileFromStream(reader io.Reader) (*LexFile, error) {
 	var readErr, err error
 
 	ret := new(LexFile)
-	ret.Definitions = make(map[string]string)
+	ret.Definitions = make(map[string]Pattern)
 
 	bufferedReader = bufio.NewReader(reader)
 
@@ -75,34 +75,19 @@ func LexFileFromStream(reader io.Reader) (*LexFile, error) {
 	return ret, nil
 }
 
-func (this *LexFile) AddDefinition(name string, pattern string) error {
+func (this *LexFile) AddDefinition(name string, pattern Pattern) error {
 	this.Definitions[name] = pattern
 	return nil
 }
 
-func (this *LexFile) AddRule(action string, patterns ...string) error {
-
-	var rulePatterns []Pattern
-	var rulePattern Pattern
-	var err error
-
-	for _, pattern := range patterns {
-
-		rulePattern, err = parseRulePattern(pattern)
-		if err != nil {
-			return err
-		}
-
-		rulePatterns = append(rulePatterns, rulePattern)
-	}
+func (this *LexFile) AddRule(action string, patterns ...Pattern) {
 
 	rule := Rule{
 		Action:   strings.TrimSpace(action),
-		Patterns: rulePatterns,
+		Patterns: patterns,
 	}
 
 	this.Rules = append(this.Rules, rule)
-	return nil
 }
 
 func (this *LexFile) GetAllActionNames() []string {
@@ -137,21 +122,27 @@ func (this *LexFile) GetAllActionNames() []string {
 /*
 	Takes all the given patterns and replaces any definitions with the actual pattern.
 */
-func (this *LexFile) resolvePatterns(patterns ...string) ([]string, error) {
+func (this *LexFile) resolvePatterns(patterns ...string) ([]Pattern, error) {
 
-	var ret []string
+	var ret []Pattern
 	var strippedPattern string
+	var resolvedPattern Pattern
+	var found bool
 
 	for _, pattern := range patterns {
 
 		strippedPattern = pattern[1 : len(pattern)-1]
 
 		if pattern[0] != '{' {
-			ret = append(ret, strippedPattern)
+			resolvedPattern = Pattern{
+				value:   strippedPattern,
+				isRegex: false,
+			}
+			ret = append(ret, resolvedPattern)
 			continue
 		}
 
-		resolvedPattern, found := this.Definitions[strippedPattern]
+		resolvedPattern, found = this.Definitions[strippedPattern]
 		if !found {
 			errorMsg := fmt.Sprintf("Unable to find a definition for '%s'", strippedPattern)
 			return ret, errors.New(errorMsg)

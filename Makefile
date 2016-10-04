@@ -22,7 +22,7 @@ fmt:
 	@go fmt ./src/etymu
 
 sample: build
-	@./.output/etymu -l go -o ./.temp/calc ./sample/calc.el
+	@./.output/etymu -l go -m main -o ./.temp/bash ./samples/bash.el
 
 dist: build test
 

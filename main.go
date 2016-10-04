@@ -22,7 +22,7 @@ func main() {
 		fatal(err, 2)
 	}
 
-	err = Generate(settings.Language, settings.Package, settings.OutputPath, lex)
+	err = Generate(settings.Language, settings.Module, settings.OutputPath, lex)
 	if err != nil {
 		fatal(err, 3)
 	}
