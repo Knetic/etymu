@@ -1,10 +1,10 @@
 package etymu
 
-func GenerateGo(file *LexFile, out chan []byte) {
+func GenerateGo(file *LexFile, module string, out chan []byte) {
 
 	buffer := NewBufferedFormatString("\t")
 
-	buffer.Printfln("package %s\n")
+	buffer.Printfln("package %s\n", module)
 	generateGoActions(file, buffer)
 
 	out <- []byte(buffer.String())

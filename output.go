@@ -13,9 +13,9 @@ import (
 	Generates code for the given [file],
 	outputting the unicode representation of it to [out].
 */
-type Codegen func(file *LexFile, out chan []byte)
+type Codegen func(file *LexFile, module string, out chan []byte)
 
-func Generate(language Language, path string, lex *LexFile) error {
+func Generate(language Language, module string, path string, lex *LexFile) error {
 
 	var generator Codegen
 	var file *os.File
@@ -38,7 +38,7 @@ func Generate(language Language, path string, lex *LexFile) error {
 
 	go func() {
 		defer close(generated)
-		generator(lex, generated)
+		generator(lex, module, generated)
 	}()
 
 	writeOutputPath(file, generated)

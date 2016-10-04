@@ -5,6 +5,7 @@ import (
 	. "etymu"
 	"flag"
 	"fmt"
+	"strings"
 )
 
 type RunSettings struct {
@@ -38,8 +39,18 @@ func parseRunSettings() (RunSettings, error) {
 
 	// if no output is specified, use the input filename as the basename for the generated file.
 	if ret.OutputPath == "" {
-		ret.OutputPath = fmt.Sprintf("./%s.%s", findOutputName(ret.InputPath), LanguageExtensionMap[ret.Language])
+		ret.OutputPath = fmt.Sprintf("./%s", findOutputName(ret.InputPath))
 	}
 
+	ret.OutputPath = ensureExtension(ret.OutputPath, ret.Language)
 	return ret, nil
+}
+
+func ensureExtension(path string, language Language) string {
+
+	extension := LanguageExtensionMap[language]
+	if strings.HasSuffix(path, extension) {
+		return path
+	}
+	return path + "." + extension
 }
