@@ -21,6 +21,9 @@ fmt:
 	@go fmt .
 	@go fmt ./src/etymu
 
+example: build
+	@./.output/etymu -l go -o ./.temp/calc ./examples/calc.el
+
 dist: build test
 
 	export GOOS=linux; \

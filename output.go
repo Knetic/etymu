@@ -4,6 +4,7 @@ import (
 	"errors"
 	. "etymu"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 )
@@ -17,7 +18,8 @@ type Codegen func(file *LexFile, out chan []byte)
 func Generate(language Language, path string, lex *LexFile) error {
 
 	var generator Codegen
-	var writeErr error
+	var file *os.File
+	var err error
 
 	switch language {
 	case LANG_GO:
@@ -27,13 +29,21 @@ func Generate(language Language, path string, lex *LexFile) error {
 		return errors.New(errorMsg)
 	}
 
-	generated := make(chan []byte, 8)
+	file, err = createOutputPath(path)
+	if err != nil {
+		return err
+	}
 
-	go func() { writeErr = writeOutputPath(path, generated) }()
-	generator(lex, generated)
+	generated := make(chan []byte)
 
-	if writeErr != nil {
-		return writeErr
+	go func() {
+		defer close(generated)
+		generator(lex, generated)
+	}()
+
+	writeOutputPath(file, generated)
+	if err != nil {
+		return err
 	}
 	return nil
 }
@@ -42,30 +52,25 @@ func findOutputName(inputPath string) string {
 	return filepath.Base(inputPath)
 }
 
+func createOutputPath(path string) (*os.File, error) {
+
+	var err error
+
+	path, err = filepath.Abs(path)
+	if err != nil {
+		return nil, err
+	}
+
+	return os.Create(path)
+}
+
 /*
 	Writes all the output from the given [in] channel to a file at the given [path].
 	Returns any errors it found while doing so.
 	The channel is not closed by this method.
 */
-func writeOutputPath(path string, in <-chan []byte) error {
-
-	var file *os.File
-	var err error
-
-	path, err = filepath.Abs(path)
-	if err != nil {
-		return err
-	}
-
-	file, err = os.Open(path)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
+func writeOutputPath(writer io.Writer, in <-chan []byte) {
 	for buffered := range in {
-		file.Write(buffered)
+		writer.Write(buffered)
 	}
-
-	return nil
 }

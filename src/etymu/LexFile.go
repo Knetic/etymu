@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 )
 
 type LexFile struct {
@@ -96,7 +97,7 @@ func (this *LexFile) AddRule(action string, patterns ...string) error {
 	}
 
 	rule := Rule{
-		Action:   action,
+		Action:   strings.TrimSpace(action),
 		Patterns: expressions,
 	}
 
@@ -111,6 +112,12 @@ func (this *LexFile) GetAllActionNames() []string {
 
 	for _, rule := range this.Rules {
 
+		// skip empties
+		if rule.Action == "" {
+			continue
+		}
+
+		// see if it's already listed
 		found = false
 		for _, extant := range ret {
 			if rule.Action == extant {
