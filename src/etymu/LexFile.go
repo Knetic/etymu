@@ -7,7 +7,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 )
 
@@ -83,22 +82,23 @@ func (this *LexFile) AddDefinition(name string, pattern string) error {
 
 func (this *LexFile) AddRule(action string, patterns ...string) error {
 
-	var expressions []string
+	var rulePatterns []Pattern
+	var rulePattern Pattern
 	var err error
 
 	for _, pattern := range patterns {
 
-		_, err = regexp.Compile(pattern)
+		rulePattern, err = parseRulePattern(pattern)
 		if err != nil {
 			return err
 		}
 
-		expressions = append(expressions, pattern)
+		rulePatterns = append(rulePatterns, rulePattern)
 	}
 
 	rule := Rule{
 		Action:   strings.TrimSpace(action),
-		Patterns: expressions,
+		Patterns: rulePatterns,
 	}
 
 	this.Rules = append(this.Rules, rule)
@@ -139,21 +139,21 @@ func (this *LexFile) GetAllActionNames() []string {
 */
 func (this *LexFile) resolvePatterns(patterns ...string) ([]string, error) {
 
-	var resolveName string
-
-	ret := make([]string, len(patterns))
+	var ret []string
+	var strippedPattern string
 
 	for _, pattern := range patterns {
 
+		strippedPattern = pattern[1 : len(pattern)-1]
+
 		if pattern[0] != '{' {
-			ret = append(ret, pattern)
+			ret = append(ret, strippedPattern)
 			continue
 		}
 
-		resolveName = pattern[1 : len(pattern)-1]
-		resolvedPattern, found := this.Definitions[resolveName]
+		resolvedPattern, found := this.Definitions[strippedPattern]
 		if !found {
-			errorMsg := fmt.Sprintf("Unable to find a definition for '%s'", resolveName)
+			errorMsg := fmt.Sprintf("Unable to find a definition for '%s'", strippedPattern)
 			return ret, errors.New(errorMsg)
 		}
 

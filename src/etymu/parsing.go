@@ -50,7 +50,12 @@ func addRuleLine(lex *LexFile, line string) error {
 	}
 
 	// get a set of patterns from the left side
-	patterns, err = lex.resolvePatterns(strings.Split(left, "|")...)
+	patterns, err = parseRulePatterns(left)
+	if err != nil {
+		return err
+	}
+
+	patterns, err = lex.resolvePatterns(patterns...)
 	if err != nil {
 		return err
 	}
@@ -73,6 +78,82 @@ func addRuleLine(lex *LexFile, line string) error {
 
 	lex.AddRule(right, patterns...)
 	return nil
+}
+
+func parseRulePatterns(rule string) ([]string, error) {
+
+	var ret []string
+	var pattern string
+	var char rune
+	var ok bool
+
+	runeChan := make(chan rune)
+	go readRunes(rule, runeChan)
+
+	for char = range runeChan {
+
+		if char == '{' {
+			pattern, ok = readChanUntil(runeChan, '}')
+		}
+		if char == '\'' {
+			pattern, ok = readChanUntil(runeChan, '\'')
+		}
+		if char == '"' {
+			pattern, ok = readChanUntil(runeChan, '"')
+		}
+
+		if !ok {
+			errorMsg := fmt.Sprintf("No corrosponding close character found for '%s'", string(char))
+			return ret, errors.New(errorMsg)
+		}
+
+		pattern = string(char) + pattern
+
+		ret = append(ret, pattern)
+
+		char, ok = <-runeChan
+		if !ok {
+			// end of input
+			break
+		}
+
+		if char != '|' {
+			errorMsg := fmt.Sprintf("No pipe separator between rule patterns (found '%s')", string(char))
+			return ret, errors.New(errorMsg)
+		}
+	}
+
+	return ret, nil
+}
+
+func readRunes(input string, out chan rune) {
+	for _, char := range input {
+		out <- char
+	}
+	close(out)
+}
+
+func readChanUntil(in <-chan rune, delim rune) (string, bool) {
+
+	var ret string
+	var escaped bool
+
+	escaped = false
+	for char := range in {
+
+		ret = ret + string(char)
+
+		if escaped {
+			escaped = false
+			continue
+		}
+
+		if char == delim {
+			return ret, true
+		}
+		escaped = (char == '\\')
+	}
+	return ret, false
 }
 
 func getWhitespaceDelimitedString(line string) (string, string, error) {
