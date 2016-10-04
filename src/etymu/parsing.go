@@ -3,10 +3,10 @@ package etymu
 import (
 	"bufio"
 	"errors"
+	"fmt"
 	"io"
 	"strings"
 	"unicode"
-	"fmt"
 )
 
 /*
@@ -55,15 +55,15 @@ func addRuleLine(lex *LexFile, line string) error {
 		return err
 	}
 
-	if(len(right) > 0) {
+	if len(right) > 0 {
 
-		if(right[0:1] != "{") {
+		if right[0:1] != "{" {
 			errorMsg := fmt.Sprintf("No opening brace to action ('%s')", right)
 			return errors.New(errorMsg)
 		}
 
 		closeIdx := strings.Index(right, "}")
-		if(closeIdx <= -1) {
+		if closeIdx <= -1 {
 			errorMsg := fmt.Sprintf("No closing brace to action ('%s')", right)
 			return errors.New(errorMsg)
 		}
