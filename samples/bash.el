@@ -1,7 +1,7 @@
 // any unicode alphanumeric
-//string [\\p{L}\\p{Nd}_/\\.]+
+string [\\p{L}\\p{Nd}_/\\.]+
 
-string [a-zA-z0-9_/\\.]+
+//string [a-zA-z0-9]+
 whitespace [\\s]+
 
 %%
@@ -14,8 +14,8 @@ whitespace [\\s]+
 
 "$"			{VARIABLE}
 "&"			{BACKGROUND}
-"("			{SUBSHELL_START}
-")"			{SUBSHELL_END}
+"("			{PAREN_OPEN}
+")"			{PAREN_CLOSE}
 "{"			{BRACE_OPEN}
 "}"			{BRACE_CLOSE}
 "["			{BRACKET_OPEN}
@@ -34,7 +34,7 @@ whitespace [\\s]+
 "function"	{FUNCTION}
 
 "*"			{WILDCARD}
-";"			{ENDCAP}
+";"			{TERMINATOR}
 ","			{SEPARATOR}
 "\""		{QUOTE_INTERPOLATED}
 "'"			{QUOTE_LITERAL}

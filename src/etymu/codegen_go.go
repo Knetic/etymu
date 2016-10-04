@@ -8,10 +8,11 @@ func GenerateGo(file *LexFile, module string, out chan []byte) {
 
 	generateGoImports(file, buffer)
 	generateGoTypes(file, buffer)
-	generateGoMatcher(buffer)
+	generateStringifiers(file, buffer)
 	generateLexerFunctions(file, buffer)
 	generateGoRules(file, buffer)
 	generateGoLexer(file, buffer)
+	generateGoMatcher(buffer)
 
 	out <- []byte(buffer.String())
 }
@@ -21,7 +22,6 @@ func generateGoImports(file *LexFile, buffer *BufferedFormatString) {
 	buffer.AddIndentation(1)
 	buffer.Printfln("\"fmt\"")
 	buffer.Printfln("\"regexp\"")
-	buffer.Printfln("\"strings\"")
 	buffer.Printfln("\"errors\"")
 	buffer.AddIndentation(-1)
 	buffer.Printfln(")\n")
@@ -42,6 +42,25 @@ func generateGoTypes(file *LexFile, buffer *BufferedFormatString) {
 	writeStruct(buffer, "lexerRule", "pattern *regexp.Regexp", "match string", "kind TokenKind")
 }
 
+func generateStringifiers(file *LexFile, buffer *BufferedFormatString) {
+
+	buffer.Printfln("func (this TokenKind) String() string {")
+	buffer.AddIndentation(1)
+	buffer.Printfln("switch this {")
+	buffer.AddIndentation(1)
+
+	buffer.Printfln("default: return \"UNKNOWN\"")
+
+	for _, action := range file.GetAllActionNames() {
+		buffer.Printfln("case %s: return \"%s\"", action, action)
+	}
+
+	buffer.AddIndentation(-1)
+	buffer.Printfln("}")
+	buffer.AddIndentation(-1)
+	buffer.Printfln("}")
+}
+
 func generateLexerFunctions(file *LexFile, buffer *BufferedFormatString) {
 
 	// TODO: maybe make two classes implementing a common interface, to save runtime jumps?
@@ -50,7 +69,7 @@ func generateLexerFunctions(file *LexFile, buffer *BufferedFormatString) {
 
 	buffer.Printfln("if(this.pattern == nil) {")
 	buffer.AddIndentation(1)
-	buffer.Printfln("return strings.HasPrefix(input, this.match)")
+	buffer.Printfln("return input == this.match")
 	buffer.AddIndentation(-1)
 	buffer.Printfln("} else {")
 	buffer.AddIndentation(1)
@@ -98,7 +117,7 @@ func generateGoLexer(file *LexFile, buffer *BufferedFormatString) {
 	buffer.Printfln("func Lex(input string) ([]Token, error) {")
 	buffer.AddIndentation(1)
 	buffer.Printfln("var ret []Token")
-	buffer.Printfln("var matchedRule lexerRule")
+	buffer.Printfln("var matchedRule, priorMatchedRule lexerRule")
 	buffer.Printfln("var t, p string")
 	buffer.Printfln("var ruleMatches, priorRuleMatches uint16")
 
@@ -111,7 +130,7 @@ func generateGoLexer(file *LexFile, buffer *BufferedFormatString) {
 	buffer.Printfln("p = t")
 	buffer.Printfln("t += string(char)")
 	buffer.Printfln("priorRuleMatches = ruleMatches")
-	buffer.Printfln("ruleMatches = 0")
+	buffer.Printfln("priorMatchedRule = matchedRule")
 
 	// check every rule to see if this matches exactly one
 	buffer.Printfln("matchedRule, ruleMatches = matchRules(t)")
@@ -119,8 +138,14 @@ func generateGoLexer(file *LexFile, buffer *BufferedFormatString) {
 	// if we have ambiguous (or no) matches, keep adding to the string until we have only one match.
 	buffer.Printfln("if ruleMatches != 1 && priorRuleMatches == 1 {")
 	buffer.AddIndentation(1)
-	buffer.Printfln("token := Token{Kind: matchedRule.kind, Value: p}")
+
+	buffer.Printfln("if priorMatchedRule.kind != UNKNOWN {")
+	buffer.AddIndentation(1)
+	buffer.Printfln("token := Token{Kind: priorMatchedRule.kind, Value: p}")
 	buffer.Printfln("ret = append(ret, token)")
+	buffer.AddIndentation(-1)
+	buffer.Printfln("}")
+
 	buffer.Printfln("t = t[len(t)-1:]")
 	buffer.Printfln("matchedRule, ruleMatches = matchRules(t)")
 	buffer.Printfln("continue")
@@ -138,6 +163,7 @@ func generateGoLexer(file *LexFile, buffer *BufferedFormatString) {
 	buffer.AddIndentation(1)
 	buffer.Printfln("token := Token{Kind: matchedRule.kind, Value: t}")
 	buffer.Printfln("ret = append(ret, token)")
+	buffer.Printfln("return ret, nil")
 	buffer.AddIndentation(-1)
 	buffer.Printfln("}\n")
 
