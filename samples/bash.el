@@ -1,10 +1,15 @@
 // any unicode alphanumeric
-string [\\p{L}\\p{Nd}_/\\.]+
+unquotedString [\\p{L}\\p{Nd}_/\\.]+
 
-//string [a-zA-z0-9]+
-whitespace [\\s]+
+interpolatedString [\"].*[\"]
+literalString '.*'
+
+whitespace [\\s\r\n]+
+comment #.*\n
 
 %%
+
+{comment}	{COMMENT}
 
 "|"			{PIPE}
 ">>" 		{PIPE_APPEND}
@@ -13,7 +18,12 @@ whitespace [\\s]+
 "&>"		{PIPE_COMBINED_OVERWRITE}
 
 "$"			{VARIABLE}
+"${"		{VARIBLE_LONGFORM}
+"$!"		{VARIABLE_LASTPID}
+"$?"		{VARIABLE_LASTSTATUS}
+
 "&"			{BACKGROUND}
+"$("		{SUBSHELL}
 "("			{PAREN_OPEN}
 ")"			{PAREN_CLOSE}
 "{"			{BRACE_OPEN}
@@ -22,6 +32,7 @@ whitespace [\\s]+
 "]"			{BRACKET_CLOSE}
 "[["		{EXPRESSION_OPEN}
 "]]"		{EXPRESSION_CLOSE}
+"="			{ASSIGNMENT}
 
 "if"		{IF}
 "then"		{THEN}
@@ -32,15 +43,22 @@ whitespace [\\s]+
 "for"		{FOR}
 "in"		{IN}
 "function"	{FUNCTION}
+"export"	{EXPORT}
 
 "*"			{WILDCARD}
 ";"			{TERMINATOR}
 ","			{SEPARATOR}
-"\""		{QUOTE_INTERPOLATED}
-"'"			{QUOTE_LITERAL}
 "\\"		{ESCAPE}
-"\n"		{ESCAPE_NEWLINE}
+"\\\n"		{ESCAPE_NEWLINE}
 
-{string}	{STRING}
+{unquotedString}		{STRING}
+{interpolatedString}	{STRING_INTERPOLATED}
+{literalString}			{STRING_LITERAL}
+
+// ignore whitespace
 {whitespace}
+
+// may not be useful,
+//"\""		{QUOTE_INTERPOLATED}
+//"'"			{QUOTE_LITERAL}
 %%
