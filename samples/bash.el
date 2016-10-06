@@ -29,6 +29,7 @@ comment #.*\n
 
 "&"				{BACKGROUND}
 "$("			{SUBSHELL}
+"`"				{SUBSHELL_TICK}
 "("				{PAREN_OPEN}
 ")"				{PAREN_CLOSE}
 "{"				{BRACE_OPEN}
@@ -38,6 +39,7 @@ comment #.*\n
 "[["			{EXPRESSION_OPEN}
 "]]"			{EXPRESSION_CLOSE}
 "=" 			{ASSIGNMENT}
+"!"				{LAST_COMMAND}
 
 "if"			{IF}
 "then"			{THEN}
