@@ -1,6 +1,9 @@
 etymu
 ====
 
+[![Build Status](https://travis-ci.org/Knetic/etymu.svg?branch=master)](https://travis-ci.org/Knetic/etymu)
+[![Godoc](https://godoc.org/github.com/Knetic/etymu?status.png)](https://godoc.org/github.com/Knetic/etymu)
+
 Generates lexers from language-agnostic lexer files. All the good stuff from flex/lex, none of the bad decisions.
 
 Why not flex/lex?
