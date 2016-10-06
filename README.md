@@ -21,6 +21,7 @@ How does the format and usage differ from lex?
 * Lex files have three parts; definition, rules, and code. "el" files have no code section, and no ability for inline code.
 * Regex are Go, not the original C regex used by lex.
 * If any syntax is not specified, it is an error. Lex will usually just print unused sections of the file.
+* Lex uses logic that involves matching a token to the longest rule. `etymu` prefers rule precedence - top to bottom, the first rule that matches the token string will be used.
 
 What languages does this support?
 ====
