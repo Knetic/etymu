@@ -4,8 +4,6 @@ unquotedString [-:_./\\\\\\p{L}\\p{Nd}]+
 interpolatedString [\"].*[\"]
 literalString '.*'
 
-//assignment [\n;][-:_./\\\\\\p{L}\\p{Nd}]+=
-
 whitespace [ \t\r]+
 comment #.*\n
 
@@ -63,8 +61,4 @@ comment #.*\n
 
 // ignore whitespace
 {whitespace}
-
-// may not be useful,
-//"\""		{QUOTE_INTERPOLATED}
-//"'"		{QUOTE_LITERAL}
 %%
