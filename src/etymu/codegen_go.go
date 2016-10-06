@@ -127,8 +127,9 @@ func generateGoLexer(file *LexFile, buffer *BufferedFormatString) {
 
 	buffer.Printfln("for _, char := range input {")
 	buffer.AddIndentation(1)
+	buffer.Printfln("character := string(char)")
 	buffer.Printfln("p = t")
-	buffer.Printfln("t += string(char)")
+	buffer.Printfln("t += character")
 	buffer.Printfln("priorRuleMatches = ruleMatches")
 	buffer.Printfln("priorMatchedRule = matchedRule")
 
@@ -136,7 +137,7 @@ func generateGoLexer(file *LexFile, buffer *BufferedFormatString) {
 	buffer.Printfln("matchedRule, ruleMatches = matchRules(t)")
 
 	// if we have ambiguous (or no) matches, keep adding to the string until we have only one match.
-	buffer.Printfln("if ruleMatches != 1 && priorRuleMatches == 1 {")
+	buffer.Printfln("if ruleMatches == 0 && priorRuleMatches != 0 {")
 	buffer.AddIndentation(1)
 
 	buffer.Printfln("if priorMatchedRule.kind != UNKNOWN {")
@@ -146,7 +147,7 @@ func generateGoLexer(file *LexFile, buffer *BufferedFormatString) {
 	buffer.AddIndentation(-1)
 	buffer.Printfln("}")
 
-	buffer.Printfln("t = t[len(t)-1:]")
+	buffer.Printfln("t = character")
 	buffer.Printfln("matchedRule, ruleMatches = matchRules(t)")
 	buffer.Printfln("continue")
 	buffer.AddIndentation(-1)
@@ -195,12 +196,13 @@ func generateGoMatcher(buffer *BufferedFormatString) {
 	buffer.Printfln("for _, rule := range lexerRules {")
 	buffer.AddIndentation(1)
 
+	// TODO: give preference to explicit patterns over regex
 	buffer.Printfln("if rule.applies(input) {")
 	buffer.AddIndentation(1)
 
-	buffer.Printfln("matchedRule = rule")
 	buffer.Printfln("count++")
 	buffer.Printfln("if count >= 2 {break}")
+	buffer.Printfln("matchedRule = rule")
 	buffer.AddIndentation(-1)
 	buffer.Printfln("}")
 
