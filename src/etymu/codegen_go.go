@@ -23,6 +23,7 @@ func generateGoImports(file *LexFile, buffer *BufferedFormatString) {
 	buffer.Printfln("\"fmt\"")
 	buffer.Printfln("\"regexp\"")
 	buffer.Printfln("\"errors\"")
+	buffer.Printfln("\"strings\"")
 	buffer.AddIndentation(-1)
 	buffer.Printfln(")\n")
 }
@@ -69,7 +70,7 @@ func generateLexerFunctions(file *LexFile, buffer *BufferedFormatString) {
 
 	buffer.Printfln("if(this.pattern == nil) {")
 	buffer.AddIndentation(1)
-	buffer.Printfln("return input == this.match")
+	buffer.Printfln("return strings.HasPrefix(this.match, input)")
 	buffer.AddIndentation(-1)
 	buffer.Printfln("} else {")
 	buffer.AddIndentation(1)
